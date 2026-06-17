@@ -202,31 +202,3 @@ if st.button(" Predict Burnout Risk", type="primary", use_container_width=True):
 
     
     
-    # FEATURE CONTRIBUTION ANALYSIS
-    st.markdown("---")
-    st.markdown("###  Feature Contribution Analysis")
-    
-    input_values = input_data.iloc[0]
-    
-    cols = st.columns(len(selected_features))
-    for col, feature in zip(cols, selected_features):
-        value = input_values[feature]
-        
-        # Normalize value for gauge
-        if feature == 'sleep_hours':
-            max_val = 11.0
-            color = "green" if value >= 7 else "orange" if value >= 6 else "red"
-        elif feature == 'homework_hours':
-            max_val = 6.0
-            color = "red" if value >= 4 else "orange" if value >= 2.5 else "green"
-        else:  # support features
-            max_val = 5
-            color = "green" if value >= 4 else "orange" if value >= 3 else "red"
-        
-        progress = min(value / max_val, 1.0) if max_val > 0 else 0
-        
-        with col:
-            st.markdown(f"**{feature}**")
-            st.progress(progress)
-            st.caption(f"{value:.1f}" if isinstance(value, float) else f"{value}")
-
