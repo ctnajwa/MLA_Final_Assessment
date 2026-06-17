@@ -181,7 +181,7 @@ if st.button(" Predict Burnout Risk", type="primary", use_container_width=True):
     
     # DISPLAY RESULTS
     st.markdown("---")
-    st.markdown("## 📊 Prediction Results")
+    st.markdown("## Prediction Results")
     
     result_col1, result_col2 = st.columns([2, 1])
     
@@ -201,19 +201,6 @@ if st.button(" Predict Burnout Risk", type="primary", use_container_width=True):
             """, unsafe_allow_html=True)
 
     
-    with result_col2:
-        st.markdown("### Confidence Scores")
-        prob_df = pd.DataFrame({
-            'Status': ['No Burnout', 'High Burnout'],
-            'Probability': probability
-        })
-        fig = px.bar(prob_df, 
-                     x='Status', 
-                     y='Probability',
-                     color='Status',
-                     color_discrete_map={'No Burnout': '#34D399', 'High Burnout': '#F87171'},
-                     title='Prediction Probability')
-        st.plotly_chart(fig, use_container_width=True)
     
     # FEATURE CONTRIBUTION ANALYSIS
     st.markdown("---")
