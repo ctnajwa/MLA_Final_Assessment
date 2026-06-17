@@ -5,9 +5,7 @@ import pickle
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ============================================
 # PAGE CONFIGURATION
-# ============================================
 
 st.set_page_config(
     page_title="Student Burnout Predictor",
@@ -16,56 +14,49 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ============================================
+
 # LOAD MODEL AND ARTIFACTS
-# ============================================
 
 @st.cache_resource
 def load_model():
     """Load the trained model, scaler, and features"""
     try:
-        # Load the deployment package
-        with open('svm_deployment_package.pkl', 'rb') as f:
-            package = pickle.load(f)
+        # Load the trained model
+        with open('svm_burnout_model_selected.pkl', 'rb') as f:
+            model = pickle.load(f)
         
-        return (
-            package['model'],
-            package['scaler'],
-            package['features'],
-            package['model_info']
-        )
-    except FileNotFoundError:
-        # Fallback: Load individual files
-        try:
-            with open('svm_burnout_model_selected.pkl', 'rb') as f:
-                model = pickle.load(f)
-            with open('scaler_selected.pkl', 'rb') as f:
-                scaler = pickle.load(f)
-            with open('selected_features_svm.pkl', 'rb') as f:
-                features = pickle.load(f)
-            
-            model_info = {
-                'algorithm': 'SVM (RBF Kernel)',
-                'feature_count': len(features),
-                'feature_selection_method': 'SelectFromModel with LinearSVC'
-            }
-            
-            return model, scaler, features, model_info
-        except FileNotFoundError:
-            st.error("""
-            ❌ Model files not found!
-            
-            Please ensure you have run the feature selection and deployment code 
-            to generate the model files first.
-            """)
-            st.stop()
+        # Load the scaler
+        with open('scaler_selected.pkl', 'rb') as f:
+            scaler = pickle.load(f)
+        
+        # Load the selected features
+        with open('selected_features_svm.pkl', 'rb') as f:
+            selected_features = pickle.load(f)
+        
+        model_info = {
+            'algorithm': 'SVM (RBF Kernel)',
+            'feature_count': len(selected_features),
+            'feature_selection_method': 'SelectFromModel with LinearSVC'
+        }
+        
+        return model, scaler, selected_features, model_info
+    
+    except FileNotFoundError as e:
+        st.error(f"""
+        ❌ Missing file: {e.filename}
+        
+        Please ensure all model files are in the same directory:
+        - svm_burnout_model_selected.pkl
+        - scaler_selected.pkl
+        - selected_features_svm.pkl
+        """)
+        st.stop()
 
 # Load the model
 model, scaler, selected_features, model_info = load_model()
 
-# ============================================
+
 # CUSTOM CSS
-# ============================================
 
 st.markdown("""
     <style>
@@ -115,16 +106,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ============================================
+
 # HEADER
-# ============================================
 
 st.markdown('<div class="main-header">📚 Student Burnout Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Predict whether a student is at risk of high burnout using SVM</div>', unsafe_allow_html=True)
 
-# ============================================
 # SIDEBAR - MODEL INFORMATION
-# ============================================
+
 
 with st.sidebar:
     st.markdown("## 🤖 Model Information")
@@ -157,9 +146,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ============================================
 # MAIN CONTENT - INPUT FORM
-# ============================================
 
 st.markdown("## 📝 Enter Student Information")
 
@@ -224,9 +211,7 @@ with col2:
     }
     st.markdown(f"**Stress Level:** {stress_labels[self_rated_stress]}")
 
-# ============================================
 # PREDICTION BUTTON
-# ============================================
 
 st.markdown("---")
 
@@ -249,9 +234,7 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
     prediction = model.predict(input_scaled)[0]
     probability = model.predict_proba(input_scaled)[0]
     
-    # ============================================
     # DISPLAY RESULTS
-    # ============================================
     
     st.markdown("---")
     st.markdown("## 📊 Prediction Results")
@@ -300,9 +283,8 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
                      title='Prediction Probability')
         st.plotly_chart(fig, use_container_width=True)
     
-    # ============================================
+
     # FEATURE CONTRIBUTION ANALYSIS
-    # ============================================
     
     st.markdown("---")
     st.markdown("### 📈 Feature Contribution Analysis")
@@ -338,9 +320,8 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
             st.progress(progress)
             st.caption(f"{value:.1f}" if isinstance(value, float) else f"{value}")
 
-# ============================================
+
 # FOOTER - ADDITIONAL INFORMATION
-# ============================================
 
 st.markdown("---")
 with st.expander("ℹ️ About This Predictor"):
@@ -363,8 +344,3 @@ with st.expander("ℹ️ About This Predictor"):
     - Results should be interpreted with professional guidance
     - The model was trained on student population data
     """)
-
-# ============================================
-# RUN THE APP
-# ============================================
-# To run: streamlit run app.py
