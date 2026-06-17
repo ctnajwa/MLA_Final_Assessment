@@ -5,7 +5,6 @@ import pickle
 import plotly.express as px
 
 # PAGE CONFIGURATION
-
 st.set_page_config(
     page_title="Student Burnout Predictor",
     page_icon="📚",
@@ -13,22 +12,17 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-
 # LOAD MODEL AND ARTIFACTS
-
 @st.cache_resource
 def load_model():
     """Load the trained model, scaler, and features"""
     try:
-        # Load the trained model
         with open('svm_burnout_model_selected.pkl', 'rb') as f:
             model = pickle.load(f)
         
-        # Load the scaler
         with open('scaler_selected.pkl', 'rb') as f:
             scaler = pickle.load(f)
         
-        # Load the selected features
         with open('selected_features_svm.pkl', 'rb') as f:
             selected_features = pickle.load(f)
         
@@ -48,23 +42,21 @@ def load_model():
         st.error(f"""
         ❌ Missing file: {e.filename}
         
-        Please ensure all model files are in the same directory:
-        - svm_burnout_model_selected.pkl
-        - scaler_selected.pkl
-        - selected_features_svm.pkl
+        Please ensure all model files are in the same directory.
         """)
         st.stop()
 
 # Load the model
 model, scaler, selected_features, model_info = load_model()
 
+# Display which features are required (for debugging)
+st.write("📊 **Required Features:**", selected_features)
+
 
 # CUSTOM CSS - MOBILE FRIENDLY
 
-
 st.markdown("""
     <style>
-    /* Main header */
     .main-header {
         font-size: 2.5rem;
         font-weight: 700;
@@ -72,16 +64,12 @@ st.markdown("""
         text-align: center;
         margin-bottom: 0.5rem;
     }
-    
-    /* Sub header */
     .sub-header {
         font-size: 1.2rem;
         color: #6B7280;
         text-align: center;
         margin-bottom: 2rem;
     }
-    
-    /* Prediction boxes */
     .prediction-box {
         padding: 20px;
         border-radius: 10px;
@@ -100,33 +88,11 @@ st.markdown("""
         color: #065F46;
         border: 2px solid #34D399;
     }
-    
-    /* Mobile responsive adjustments */
     @media (max-width: 768px) {
-        .main-header {
-            font-size: 1.8rem;
-        }
-        .sub-header {
-            font-size: 1rem;
-        }
-        .prediction-box {
-            font-size: 1.2rem;
-            padding: 15px;
-        }
-        .stSlider {
-            padding: 10px 0;
-        }
-        .stRadio > div {
-            flex-direction: row !important;
-        }
+        .main-header { font-size: 1.8rem; }
+        .sub-header { font-size: 1rem; }
+        .prediction-box { font-size: 1.2rem; padding: 15px; }
     }
-    
-    /* Make sliders touch-friendly on mobile */
-    .stSlider > div > div {
-        min-height: 30px;
-    }
-    
-    /* Info box */
     .info-box {
         background-color: #EFF6FF;
         padding: 15px;
@@ -136,18 +102,24 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
 # HEADER
-
 st.markdown('<div class="main-header">📚 Student Burnout Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Predict whether a student is at risk of high burnout using SVM</div>', unsafe_allow_html=True)
 
+# Show selected features info
+with st.expander("ℹ️ Model Information"):
+    st.markdown(f"""
+    - **Algorithm:** {model_info['algorithm']}
+    - **Features Used:** {model_info['feature_count']}
+    - **Feature Selection:** {model_info['feature_selection_method']}
+    - **Features:** {', '.join(selected_features)}
+    """)
 
-# MAIN CONTENT - INPUT FORM
+
+# INPUT FORM - MATCHING SELECTED FEATURES
 
 st.markdown("## 📝 Enter Student Information")
 
-# Create two columns for input
 col1, col2 = st.columns(2)
 
 with col1:
@@ -170,44 +142,33 @@ with col1:
         step=0.5,
         help="Average hours spent on homework daily"
     )
-    
-    screen_time_hours = st.slider(
-        "Screen Time Hours (per day)",
-        min_value=0.5,
-        max_value=10.0,
-        value=4.0,
-        step=0.5,
-        help="Average hours of screen time daily"
-    )
 
 with col2:
-    st.markdown("### 🧠 Stress & Demographics")
+    st.markdown("### 🤝 Support Systems")
     
-    self_rated_stress = st.select_slider(
-        "Self-Rated Stress Level",
-        options=[1, 2, 3, 4, 5],
+    family_support = st.slider(
+        "Family Support Level",
+        min_value=1,
+        max_value=5,
         value=3,
-        help="1 = Low Stress, 5 = High Stress"
+        help="1 = Low Support, 5 = High Support"
     )
     
-    gender = st.radio(
-        "Gender",
-        options=["Female", "Male"],
-        index=0,
-        horizontal=True
+    friend_support = st.slider(
+        "Friend Support Level",
+        min_value=1,
+        max_value=5,
+        value=3,
+        help="1 = Low Support, 5 = High Support"
     )
-    gender_male = 1 if gender == "Male" else 0
     
-    # Display stress level indicator
-    stress_labels = {
-        1: "🟢 Low",
-        2: "🟢 Moderate-Low",
-        3: "🟡 Moderate",
-        4: "🟠 Moderate-High",
-        5: "🔴 High"
-    }
-    st.markdown(f"**Stress Level:** {stress_labels[self_rated_stress]}")
-
+    teacher_support = st.slider(
+        "Teacher Support Level",
+        min_value=1,
+        max_value=5,
+        value=3,
+        help="1 = Low Support, 5 = High Support"
+    )
 
 # PREDICTION BUTTON
 
@@ -215,13 +176,13 @@ st.markdown("---")
 
 if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=True):
     
-    # Prepare input data with consistent column names
+    # Prepare input data with correct feature names
     input_data = pd.DataFrame({
         'sleep_hours': [sleep_hours],
         'homework_hours': [homework_hours],
-        'screen_time_hours': [screen_time_hours],
-        'self_rated_stress': [self_rated_stress],
-        'gender_Male': [gender_male]
+        'family_support': [family_support],
+        'friend_support': [friend_support],
+        'teacher_support': [teacher_support]
     })
     
     # Ensure features are in correct order
@@ -243,13 +204,10 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
     prediction = model.predict(input_scaled)[0]
     probability = model.predict_proba(input_scaled)[0]
     
-
     # DISPLAY RESULTS
-    
     st.markdown("---")
     st.markdown("## 📊 Prediction Results")
     
-    # Create columns for results
     result_col1, result_col2 = st.columns([2, 1])
     
     with result_col1:
@@ -263,8 +221,8 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
             **Recommendations:**
             - Consider reducing workload
             - Prioritize sleep hygiene (aim for 7-9 hours)
-            - Take regular breaks from screens
-            - Reach out to support networks
+            - Seek more support from family and friends
+            - Talk to teachers about concerns
             """)
         else:
             st.markdown("""
@@ -292,16 +250,13 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
                      color_discrete_map={'No Burnout': '#34D399', 'High Burnout': '#F87171'},
                      title='Prediction Probability')
         st.plotly_chart(fig, use_container_width=True)
-
     
     # FEATURE CONTRIBUTION ANALYSIS
-
     st.markdown("---")
     st.markdown("### 📈 Feature Contribution Analysis")
     
     input_values = input_data.iloc[0]
     
-    # Create a gauge for each feature
     cols = st.columns(len(selected_features))
     for col, feature in zip(cols, selected_features):
         value = input_values[feature]
@@ -310,15 +265,12 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
         if feature == 'sleep_hours':
             max_val = 11.0
             color = "green" if value >= 7 else "orange" if value >= 6 else "red"
-        elif feature == 'self_rated_stress':
+        elif feature == 'homework_hours':
+            max_val = 6.0
+            color = "red" if value >= 4 else "orange" if value >= 2.5 else "green"
+        else:  # support features (family_support, friend_support, teacher_support)
             max_val = 5
-            color = "red" if value >= 4 else "orange" if value >= 3 else "green"
-        elif feature in ['homework_hours', 'screen_time_hours']:
-            max_val = 8.0
-            color = "red" if value >= 5 else "orange" if value >= 3.5 else "green"
-        else:
-            max_val = 1
-            color = "blue"
+            color = "green" if value >= 4 else "orange" if value >= 3 else "red"
         
         progress = min(value / max_val, 1.0) if max_val > 0 else 0
         
