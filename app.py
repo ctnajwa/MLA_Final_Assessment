@@ -46,7 +46,7 @@ gender_Nonbinary = 1 if gender == "Nonbinary" else 0
 
 # Construct raw input array (Must follow the EXACT column order of your training X dataframe!)
 raw_inputs = np.array([[
-    grade, sleep_hours, sleep_quality, homework_hours, tests_per_week,
+    sleep_hours, sleep_quality, homework_hours, tests_per_week,
     extracurricular_hours, num_activities, screen_time_hours, commute_minutes,
     family_support, friend_support, teacher_support, self_rated_stress,
     gender_Male, gender_Nonbinary
