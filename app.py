@@ -49,12 +49,7 @@ def load_model():
 # Load the model
 model, scaler, selected_features, model_info = load_model()
 
-# Display which features are required (for debugging)
-st.write("📊 **Required Features:**", selected_features)
-
-
 # CUSTOM CSS - MOBILE FRIENDLY
-
 st.markdown("""
     <style>
     .main-header {
@@ -93,12 +88,6 @@ st.markdown("""
         .sub-header { font-size: 1rem; }
         .prediction-box { font-size: 1.2rem; padding: 15px; }
     }
-    .info-box {
-        background-color: #EFF6FF;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 4px solid #3B82F6;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -106,18 +95,7 @@ st.markdown("""
 st.markdown('<div class="main-header">📚 Student Burnout Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Predict whether a student is at risk of high burnout using SVM</div>', unsafe_allow_html=True)
 
-# Show selected features info
-with st.expander("ℹ️ Model Information"):
-    st.markdown(f"""
-    - **Algorithm:** {model_info['algorithm']}
-    - **Features Used:** {model_info['feature_count']}
-    - **Feature Selection:** {model_info['feature_selection_method']}
-    - **Features:** {', '.join(selected_features)}
-    """)
-
-
-# INPUT FORM - MATCHING SELECTED FEATURES
-
+# INPUT FORM
 st.markdown("## 📝 Enter Student Information")
 
 col1, col2 = st.columns(2)
@@ -171,7 +149,6 @@ with col2:
     )
 
 # PREDICTION BUTTON
-
 st.markdown("---")
 
 if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=True):
