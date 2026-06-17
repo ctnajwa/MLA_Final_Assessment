@@ -17,8 +17,8 @@ with open('scaler.pkl', 'rb') as f:
 st.set_page_config(page_title="Student Burnout Analyzer", page_icon="🧠", layout="centered")
 
 # Eye-catching header block
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🧠 Student Burnout Analyzer</h1>", unsafe_html=True)
-st.markdown("<p style='text-align: center; font-size:18px;'>An intelligent predictive system designed to identify early signs of academic stress and burnout among students.</p>", unsafe_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🧠 Student Burnout Analyzer</h1>", allow_html=True)
+st.markdown("<p style='text-align: center; font-size:18px;'>An intelligent predictive system designed to identify early signs of academic stress and burnout among students.</p>", allow_html=True)
 st.markdown("---")
 
 # Using columns to create a clean side-by-side aesthetic
@@ -69,7 +69,7 @@ scaled_inputs = scaler.transform(raw_inputs)
 # ==========================================
 # 4. PREDICTION STYLING
 # ==========================================
-st.markdown("<br>", unsafe_html=True)
+st.markdown("<br>", allow_html=True)
 if st.button("🚀 RUN BURNOUT ANALYSIS", type="primary", use_container_width=True):
     prediction = model.predict(scaled_inputs)[0]
     
