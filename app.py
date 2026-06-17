@@ -14,8 +14,6 @@ with open('scaler.pkl', 'rb') as f:
 # ==========================================
 # 2. CONFIGURE VISUAL APP LAYOUT
 # ==========================================
-st.set_page_config(page_title="Student Burnout Analyzer", page_icon="🧠", layout="centered")
-
 # Eye-catching header block
 st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🧠 Student Burnout Analyzer</h1>", unsafe_html=True)
 st.markdown("<p style='text-align: center; font-size:18px;'>An intelligent predictive system designed to identify early signs of academic stress and burnout among students.</p>", unsafe_html=True)
