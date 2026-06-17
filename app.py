@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import pickle
 import plotly.express as px
-import plotly.graph_objects as go
 
 # PAGE CONFIGURATION
 
@@ -33,6 +32,10 @@ def load_model():
         with open('selected_features_svm.pkl', 'rb') as f:
             selected_features = pickle.load(f)
         
+        # Convert to list if needed
+        if isinstance(selected_features, (pd.Index, np.ndarray)):
+            selected_features = selected_features.tolist()
+        
         model_info = {
             'algorithm': 'SVM (RBF Kernel)',
             'feature_count': len(selected_features),
@@ -56,10 +59,12 @@ def load_model():
 model, scaler, selected_features, model_info = load_model()
 
 
-# CUSTOM CSS
+# CUSTOM CSS - MOBILE FRIENDLY
+
 
 st.markdown("""
     <style>
+    /* Main header */
     .main-header {
         font-size: 2.5rem;
         font-weight: 700;
@@ -67,12 +72,16 @@ st.markdown("""
         text-align: center;
         margin-bottom: 0.5rem;
     }
+    
+    /* Sub header */
     .sub-header {
         font-size: 1.2rem;
         color: #6B7280;
         text-align: center;
         margin-bottom: 2rem;
     }
+    
+    /* Prediction boxes */
     .prediction-box {
         padding: 20px;
         border-radius: 10px;
@@ -91,12 +100,33 @@ st.markdown("""
         color: #065F46;
         border: 2px solid #34D399;
     }
-    .feature-box {
-        background-color: #F3F4F6;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
+    
+    /* Mobile responsive adjustments */
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 1.8rem;
+        }
+        .sub-header {
+            font-size: 1rem;
+        }
+        .prediction-box {
+            font-size: 1.2rem;
+            padding: 15px;
+        }
+        .stSlider {
+            padding: 10px 0;
+        }
+        .stRadio > div {
+            flex-direction: row !important;
+        }
     }
+    
+    /* Make sliders touch-friendly on mobile */
+    .stSlider > div > div {
+        min-height: 30px;
+    }
+    
+    /* Info box */
     .info-box {
         background-color: #EFF6FF;
         padding: 15px;
@@ -112,39 +142,6 @@ st.markdown("""
 st.markdown('<div class="main-header">📚 Student Burnout Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Predict whether a student is at risk of high burnout using SVM</div>', unsafe_allow_html=True)
 
-# SIDEBAR - MODEL INFORMATION
-
-
-with st.sidebar:
-    st.markdown("## 🤖 Model Information")
-    st.markdown(f"""
-    <div class="info-box">
-        <b>Algorithm:</b> {model_info['algorithm']}<br>
-        <b>Features Used:</b> {model_info['feature_count']}<br>
-        <b>Feature Selection:</b> {model_info['feature_selection_method']}
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    st.markdown("### 📊 Selected Features")
-    for feature in selected_features:
-        st.markdown(f"- {feature}")
-    
-    st.markdown("---")
-    st.markdown("### 📈 Model Performance")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Accuracy", "82%", delta="+2% vs DT")
-    with col2:
-        st.metric("F1 Score", "0.82", delta="0.03")
-    
-    st.markdown("---")
-    st.markdown("""
-    <div style="font-size: 0.8rem; color: #6B7280; text-align: center;">
-        Built with ❤️ using Streamlit & SVM<br>
-        Version 1.0
-    </div>
-    """, unsafe_allow_html=True)
 
 # MAIN CONTENT - INPUT FORM
 
@@ -211,13 +208,14 @@ with col2:
     }
     st.markdown(f"**Stress Level:** {stress_labels[self_rated_stress]}")
 
+
 # PREDICTION BUTTON
 
 st.markdown("---")
 
 if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=True):
     
-    # Prepare input data
+    # Prepare input data with consistent column names
     input_data = pd.DataFrame({
         'sleep_hours': [sleep_hours],
         'homework_hours': [homework_hours],
@@ -227,13 +225,25 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
     })
     
     # Ensure features are in correct order
-    input_data = input_data[selected_features]
+    try:
+        input_data = input_data[selected_features]
+    except KeyError as e:
+        st.error(f"""
+        ❌ Feature mismatch error!
+        
+        The model expects these features: {selected_features}
+        But the input has: {input_data.columns.tolist()}
+        
+        Please check that the model files are correct.
+        """)
+        st.stop()
     
     # Scale and predict
     input_scaled = scaler.transform(input_data)
     prediction = model.predict(input_scaled)[0]
     probability = model.predict_proba(input_scaled)[0]
     
+
     # DISPLAY RESULTS
     
     st.markdown("---")
@@ -282,15 +292,12 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
                      color_discrete_map={'No Burnout': '#34D399', 'High Burnout': '#F87171'},
                      title='Prediction Probability')
         st.plotly_chart(fig, use_container_width=True)
-    
 
-    # FEATURE CONTRIBUTION ANALYSIS
     
+    # FEATURE CONTRIBUTION ANALYSIS
+
     st.markdown("---")
     st.markdown("### 📈 Feature Contribution Analysis")
-    
-    # Create a simple contribution visualization based on input values
-    # (This is a simplified version - actual SHAP values would be better)
     
     input_values = input_data.iloc[0]
     
@@ -319,28 +326,3 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
             st.markdown(f"**{feature}**")
             st.progress(progress)
             st.caption(f"{value:.1f}" if isinstance(value, float) else f"{value}")
-
-
-# FOOTER - ADDITIONAL INFORMATION
-
-st.markdown("---")
-with st.expander("ℹ️ About This Predictor"):
-    st.markdown("""
-    **Model Details:**
-    - **Algorithm:** Support Vector Machine (SVM) with RBF kernel
-    - **Feature Selection:** SelectFromModel with LinearSVC
-    - **Training Data:** 1,956 student records
-    - **Features Selected:** Top 5 most important features
-    
-    **Feature Descriptions:**
-    - **Sleep Hours:** Average hours of sleep per night
-    - **Homework Hours:** Average hours spent on homework daily
-    - **Screen Time Hours:** Average hours of screen time daily
-    - **Self-Rated Stress:** Self-reported stress level (1-5)
-    - **Gender:** Student's gender
-    
-    **Important Notes:**
-    - This is a predictive tool, not a medical diagnosis
-    - Results should be interpreted with professional guidance
-    - The model was trained on student population data
-    """)
