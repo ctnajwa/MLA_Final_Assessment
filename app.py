@@ -7,7 +7,6 @@ import plotly.express as px
 # PAGE CONFIGURATION
 st.set_page_config(
     page_title="Student Burnout Predictor",
-    page_icon="📚",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -34,7 +33,7 @@ def load_model():
     
     except FileNotFoundError:
         st.error("""
-        ❌ Model file not found!
+        Model file not found!
         
         Please ensure 'model_package.pkl' is in the same directory.
         
@@ -92,17 +91,17 @@ st.markdown("""
 
 
 # HEADER
-st.markdown('<div class="main-header">📚 Student Burnout Predictor</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header"> Student Burnout Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Predict whether a student is at risk of high burnout using SVM</div>', unsafe_allow_html=True)
 
 # Input Form
 
-st.markdown("## 📝 Enter Student Information")
+st.markdown("##  Enter Student Information")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### 🛌 Sleep & Academic Load")
+    st.markdown("###  Sleep & Academic Load")
     
     sleep_hours = st.slider(
         "Sleep Hours (per night)",
@@ -123,7 +122,7 @@ with col1:
     )
 
 with col2:
-    st.markdown("### 🤝 Support Systems")
+    st.markdown("###  Support Systems")
     
     family_support = st.slider(
         "Family Support Level",
@@ -152,7 +151,7 @@ with col2:
 # Prediction
 st.markdown("---")
 
-if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=True):
+if st.button(" Predict Burnout Risk", type="primary", use_container_width=True):
     
     # Prepare input data
     input_data = pd.DataFrame({
@@ -168,7 +167,7 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
         input_data = input_data[selected_features]
     except KeyError as e:
         st.error(f"""
-        ❌ Feature mismatch error!
+         Feature mismatch error!
         
         The model expects these features: {selected_features}
         But the input has: {input_data.columns.tolist()}
@@ -190,28 +189,17 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
         if prediction == 1:
             st.markdown("""
             <div class="prediction-box prediction-high">
-                ⚠️ High Burnout Risk Detected
+                 High Burnout Risk Detected
             </div>
             """, unsafe_allow_html=True)
-            st.warning("""
-            **Recommendations:**
-            - Consider reducing workload
-            - Prioritize sleep hygiene (aim for 7-9 hours)
-            - Seek more support from family and friends
-            - Talk to teachers about concerns
-            """)
+
         else:
             st.markdown("""
             <div class="prediction-box prediction-low">
-                ✅ Low Burnout Risk
+                 Low Burnout Risk
             </div>
             """, unsafe_allow_html=True)
-            st.success("""
-            **Keep up the good habits!**
-            - Maintain balanced sleep schedule
-            - Continue managing stress effectively
-            - Stay connected with support systems
-            """)
+
     
     with result_col2:
         st.markdown("### Confidence Scores")
@@ -229,7 +217,7 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
     
     # FEATURE CONTRIBUTION ANALYSIS
     st.markdown("---")
-    st.markdown("### 📈 Feature Contribution Analysis")
+    st.markdown("###  Feature Contribution Analysis")
     
     input_values = input_data.iloc[0]
     
