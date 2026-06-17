@@ -23,7 +23,7 @@ st.markdown("---")
 st.subheader("💡 Input Student Daily/Weekly Metrics")
 
 # Create user friendly entry tools (Sliders and dropdowns matching your columns)
-gender = st.selectbox("Gender", options=["Male", "Female", "Nonbinary"])
+gender = st.selectbox("Gender", options=["Male", "Female"])
 sleep_hours = st.slider("Average Daily Sleep Hours", 3.0, 12.0, 7.0, 0.1)
 sleep_quality = st.slider("Sleep Quality Rating (1-5)", 1, 5, 3)
 homework_hours = st.slider("Daily Homework Hours", 0.0, 10.0, 2.0, 0.1)
@@ -42,14 +42,13 @@ self_rated_stress = st.slider("Self-Rated Stress Level (1-5)", 1, 5, 3)
 # ==========================================
 # Re-create the One-Hot Encoded variables for gender exactly like the training columns
 gender_Male = 1 if gender == "Male" else 0
-gender_Nonbinary = 1 if gender == "Nonbinary" else 0
 
 # Construct raw input array (Must follow the EXACT column order of your training X dataframe!)
 raw_inputs = np.array([[
     sleep_hours, sleep_quality, homework_hours, tests_per_week,
     extracurricular_hours, num_activities, screen_time_hours, commute_minutes,
     family_support, friend_support, teacher_support, self_rated_stress,
-    gender_Male, gender_Nonbinary
+    gender_Male
 ]])
 
 # Pass raw parameters through your saved scaler
