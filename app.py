@@ -12,44 +12,40 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# LOAD MODEL AND ARTIFACTS
+# LOAD MODEL PACKAGE
 @st.cache_resource
 def load_model():
-    """Load the trained model, scaler, and features"""
+    """Load the complete model package from a single file"""
     try:
-        with open('svm_burnout_model_selected.pkl', 'rb') as f:
-            model = pickle.load(f)
+        with open('model_package.pkl', 'rb') as f:
+            package = pickle.load(f)
         
-        with open('scaler_selected.pkl', 'rb') as f:
-            scaler = pickle.load(f)
-        
-        with open('selected_features_svm.pkl', 'rb') as f:
-            selected_features = pickle.load(f)
-        
-        # Convert to list if needed
-        if isinstance(selected_features, (pd.Index, np.ndarray)):
-            selected_features = selected_features.tolist()
-        
-        model_info = {
+        # Extract all artifacts from the package
+        model = package['model']
+        scaler = package['scaler']
+        selected_features = package['features']
+        model_info = package.get('model_info', {
             'algorithm': 'SVM (RBF Kernel)',
             'feature_count': len(selected_features),
             'feature_selection_method': 'SelectFromModel with LinearSVC'
-        }
+        })
         
         return model, scaler, selected_features, model_info
     
-    except FileNotFoundError as e:
-        st.error(f"""
-        ❌ Missing file: {e.filename}
+    except FileNotFoundError:
+        st.error("""
+        ❌ Model file not found!
         
-        Please ensure all model files are in the same directory.
+        Please ensure 'model_package.pkl' is in the same directory.
+        
+        To create this file, run the deployment package creation code in your notebook.
         """)
         st.stop()
 
-# Load the model
+# Load the model package
 model, scaler, selected_features, model_info = load_model()
 
-# CUSTOM CSS - MOBILE FRIENDLY
+# Custom CSS
 st.markdown("""
     <style>
     .main-header {
@@ -87,15 +83,20 @@ st.markdown("""
         .main-header { font-size: 1.8rem; }
         .sub-header { font-size: 1rem; }
         .prediction-box { font-size: 1.2rem; padding: 15px; }
+        .stSlider { padding: 10px 0; }
+        .stRadio > div { flex-direction: row !important; }
     }
+    .stSlider > div > div { min-height: 30px; }
     </style>
 """, unsafe_allow_html=True)
+
 
 # HEADER
 st.markdown('<div class="main-header">📚 Student Burnout Predictor</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Predict whether a student is at risk of high burnout using SVM</div>', unsafe_allow_html=True)
 
-# INPUT FORM
+# Input Form
+
 st.markdown("## 📝 Enter Student Information")
 
 col1, col2 = st.columns(2)
@@ -148,12 +149,12 @@ with col2:
         help="1 = Low Support, 5 = High Support"
     )
 
-# PREDICTION BUTTON
+# Prediction
 st.markdown("---")
 
 if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=True):
     
-    # Prepare input data with correct feature names
+    # Prepare input data
     input_data = pd.DataFrame({
         'sleep_hours': [sleep_hours],
         'homework_hours': [homework_hours],
@@ -171,8 +172,6 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
         
         The model expects these features: {selected_features}
         But the input has: {input_data.columns.tolist()}
-        
-        Please check that the model files are correct.
         """)
         st.stop()
     
@@ -245,7 +244,7 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
         elif feature == 'homework_hours':
             max_val = 6.0
             color = "red" if value >= 4 else "orange" if value >= 2.5 else "green"
-        else:  # support features (family_support, friend_support, teacher_support)
+        else:  # support features
             max_val = 5
             color = "green" if value >= 4 else "orange" if value >= 3 else "red"
         
@@ -255,3 +254,4 @@ if st.button("🔮 Predict Burnout Risk", type="primary", use_container_width=Tr
             st.markdown(f"**{feature}**")
             st.progress(progress)
             st.caption(f"{value:.1f}" if isinstance(value, float) else f"{value}")
+
